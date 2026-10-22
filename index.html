@@ -53,6 +53,31 @@
         }
       });
 
+      // ホーム画面へ移動して戻ると、ブラウザが画面(WebGL)の描画を失うことがある(iPhone など)。
+      // Unity は復元できないので、その時は自動で読み込み直す。
+      (function () {
+        function lost() {
+          try {
+            var c = document.querySelector("#unity-canvas");
+            var gl = c && (c.getContext("webgl2") || c.getContext("webgl"));
+            return !!(gl && gl.isContextLost());
+          } catch (e) { return false; }
+        }
+        document.addEventListener("visibilitychange", function () {
+          if (!document.hidden) setTimeout(function () { if (lost()) location.reload(); }, 400);
+        });
+        window.addEventListener("pageshow", function (e) {
+          if (e.persisted) location.reload();                 // 一時停止していたページの復元(バックフォワードキャッシュ)
+        });
+        window.addEventListener("load", function () {
+          var c = document.querySelector("#unity-canvas");
+          if (c) c.addEventListener("webglcontextlost", function (ev) {
+            ev.preventDefault();
+            setTimeout(function () { location.reload(); }, 300);
+          });
+        });
+      })();
+
       var container = document.querySelector("#unity-container");
       var canvas = document.querySelector("#unity-canvas");
       var loadingContainer = document.querySelector("#unity-loading-container");
@@ -99,7 +124,7 @@
 
         companyName: "2LMCard.com",
         productName: "2LMCard",
-        productVersion: "0.1.6",
+        productVersion: "0.1.7",
         showBanner: unityShowBanner,
         // errorHandler: function(err, url, line) {
         //    alert("error " + err + " occurred at line " + line);
