@@ -3,7 +3,8 @@ body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none
 #unity-container { position: fixed; left: 0; top: 0; width: 100%; height: 100%; height: var(--app-h, 100dvh); overflow: hidden; }
 #unity-fullscreen-container { position: relative; width: 100%; height: 100%; }
 /* 縦画面のゲーム: 横に広い画面(PCなど)では、縦長(9:16)の枠を中央に置き、左右は余白にする */
-#unity-canvas { position: absolute; left: 50%; top: 0; transform: translateX(-50%); height: 100%; width: 100vw; width: min(100vw, calc(var(--app-h, 100dvh) * 9 / 16)); background: #231F20 }
+/* 上のノッチ・ステータスバー(全画面表示のときも)の下から画面を始める。上のボタンが押せなくなるのを防ぐ */
+#unity-canvas { position: absolute; left: 50%; top: env(safe-area-inset-top); transform: translateX(-50%); height: calc(100% - env(safe-area-inset-top)); width: 100vw; width: min(100vw, calc((var(--app-h, 100dvh) - env(safe-area-inset-top)) * 9 / 16)); background: #231F20 }
 /* 読み込み画面(Unity のロゴではなく、ゲームのアイコンと、青灰色の背景・細い進み具合の棒) */
 #unity-loading-container { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block;
   background: linear-gradient(180deg, #edf1f6 0%, #dce4ee 100%); }
