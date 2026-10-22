@@ -5,12 +5,12 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>2LMCard</title>
     <!-- 縦画面のゲーム。ノッチ部分まで使い、拡大は禁止 -->
-    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-visual">
     <meta name="theme-color" content="#3B6AA8">
     <!-- iOS: ホーム画面に追加した時にアプリのように全画面で開く -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="2LMCard">
     <meta name="format-detection" content="telephone=no">
     <link rel="apple-touch-icon" href="TemplateData/icons/icon-180.png">
@@ -78,6 +78,27 @@
         });
       })();
 
+      // 画面の高さを固定する。Android でキーボードを出すと、ブラウザの表示領域(高さ)が縮み、
+      // ゲーム画面の縦横比が変わってUIが崩れる。キーボードで高さだけが縮んだ時は、直前の高さのままにする。
+      (function () {
+        var root = document.documentElement;
+        var stableW = 0, stableH = 0;
+        function typing() {
+          var a = document.activeElement;
+          var tag = a && a.tagName;
+          return (window.__webInput && window.__webInput.state === 1) || tag === "INPUT" || tag === "TEXTAREA";
+        }
+        function update() {
+          var w = window.innerWidth, h = window.innerHeight;
+          var keyboard = stableH > 0 && w === stableW && h < stableH * 0.85 && typing();
+          if (!keyboard) { stableW = w; stableH = h; }
+          root.style.setProperty("--app-h", stableH + "px");
+        }
+        window.addEventListener("resize", update);
+        window.addEventListener("orientationchange", function () { stableH = 0; setTimeout(update, 300); });
+        update();
+      })();
+
       var container = document.querySelector("#unity-container");
       var canvas = document.querySelector("#unity-canvas");
       var loadingContainer = document.querySelector("#unity-loading-container");
@@ -124,7 +145,7 @@
 
         companyName: "2LMCard.com",
         productName: "2LMCard",
-        productVersion: "0.1.7",
+        productVersion: "0.1.8",
         showBanner: unityShowBanner,
         // errorHandler: function(err, url, line) {
         //    alert("error " + err + " occurred at line " + line);
