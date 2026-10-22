@@ -54,7 +54,8 @@
       });
 
       // ホーム画面へ移動して戻ると、ブラウザが画面(WebGL)の描画を失うことがある(iPhone など)。
-      // Unity は復元できないので、その時は自動で読み込み直す。
+      // 失っていない時は何もしない(読み込み直すと、タイトル画面に戻ってしまうため)。
+      // 失っていても、すぐには読み込み直さず、ブラウザが描画を戻してくれるのを少し待つ。戻らなかった時だけ読み込み直す。
       (function () {
         function lost() {
           try {
@@ -63,17 +64,26 @@
             return !!(gl && gl.isContextLost());
           } catch (e) { return false; }
         }
+        var waiting = false;
+        function recoverIfLost() {
+          if (waiting || document.hidden || !lost()) return;
+          waiting = true;
+          setTimeout(function () {
+            waiting = false;
+            if (!document.hidden && lost()) location.reload();       // 待っても戻らなかった
+          }, 3000);
+        }
         document.addEventListener("visibilitychange", function () {
-          if (!document.hidden) setTimeout(function () { if (lost()) location.reload(); }, 400);
+          if (!document.hidden) setTimeout(recoverIfLost, 400);
         });
-        window.addEventListener("pageshow", function (e) {
-          if (e.persisted) location.reload();                 // 一時停止していたページの復元(バックフォワードキャッシュ)
+        window.addEventListener("pageshow", function () {
+          setTimeout(recoverIfLost, 400);                           // 一時停止していたページの復元(バックフォワードキャッシュ)。描画が生きていれば、そのまま続ける
         });
         window.addEventListener("load", function () {
           var c = document.querySelector("#unity-canvas");
           if (c) c.addEventListener("webglcontextlost", function (ev) {
-            ev.preventDefault();
-            setTimeout(function () { location.reload(); }, 300);
+            ev.preventDefault();                                    // ブラウザが描画を戻せるようにする
+            setTimeout(recoverIfLost, 400);
           });
         });
       })();
@@ -166,7 +176,12 @@
       ["gesturestart", "gesturechange", "gestureend"].forEach(function (n) {
         document.addEventListener(n, function (e) { e.preventDefault(); });
       });
-      document.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+      // 長押しメニューは止めるが、入力欄では出す(「貼り付け」のメニューに必要)
+      document.addEventListener("contextmenu", function (e) {
+        var t = e.target;
+        if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) return;
+        e.preventDefault();
+      });
 
 
 
