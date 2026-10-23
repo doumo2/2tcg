@@ -155,8 +155,17 @@
 
         companyName: "2LMCard.com",
         productName: "2LMCard",
-        productVersion: "0.1.11",
+        productVersion: "0.1.12",
         showBanner: unityShowBanner,
+        // グラフィック設定(Low / Medium / High)で決めた、画面の細かさの上限。スマホは細かすぎて電池を使うため、下げられるようにしている。
+        // 保存が無い(初めて)ときは、タッチ操作の端末は 1.5 まで、それ以外は端末の値のまま。
+        devicePixelRatio: (function () {
+          var native = window.devicePixelRatio || 1;
+          var max = NaN;
+          try { max = parseFloat(localStorage.getItem("CardGame.Dpr")); } catch (e) { }
+          if (isNaN(max)) max = ("ontouchstart" in window) ? 1.5 : 0;
+          return max > 0 ? Math.min(native, max) : native;
+        })(),
         // errorHandler: function(err, url, line) {
         //    alert("error " + err + " occurred at line " + line);
         //    // Return 'true' if you handled this error and don't want Unity
