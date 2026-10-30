@@ -3,7 +3,7 @@
 //  ・index.html などのページ本体は「ネット優先」(ネットが無い時だけキャッシュ)で、更新がすぐ届く
 //  ・同じ場所(オリジン)以外への通信(中継サーバー・GitHubのミッションJSONなど)には触れない
 // ビルドの製品バージョン(Player Settings の Version)を上げると、キャッシュ名が変わって古いものは自動で消える。
-const cacheName = "2LMCard.com-2LMCard-0.3.5";
+const cacheName = "2LMCard.com-2LMCard-0.3.6";
 const buildFiles = [
     "Build/Unity WebGL.loader.js",
     "Build/Unity WebGL.framework.js",
