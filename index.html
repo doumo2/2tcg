@@ -39,19 +39,38 @@
     <script>
       window.addEventListener("load", function () {
         if ("serviceWorker" in navigator) {
-          navigator.serviceWorker.register("ServiceWorker.js").then(function (reg) {
-            // 新しいビルドを公開した時、次に開いた時に最新へ切り替える
+          navigator.serviceWorker.register("ServiceWorker.js", { updateViaCache: "none" }).then(function (reg) {
+            // 新しいビルドを公開した時: 取得できたら「更新」のお知らせを出す(押すと読み込み直す。勝手には読み込み直さない: 遊んでいる途中で、タイトルに戻らないように)
             reg.addEventListener("updatefound", function () {
               var w = reg.installing;
               if (!w) return;
               w.addEventListener("statechange", function () {
-                if (w.state === "installed" && navigator.serviceWorker.controller)
-                  console.log("[PWA] 新しいバージョンを取得しました。再起動すると反映されます。");
+                if (w.state === "installed" && navigator.serviceWorker.controller) showUpdateBanner();
               });
             });
+            // ホーム画面のアプリは、開きっぱなしのことが多く、ブラウザが更新を確かめにいかない。前に戻ってきた時と、一定時間ごとに、確かめる
+            function check() { try { reg.update(); } catch (e) { } }
+            document.addEventListener("visibilitychange", function () { if (!document.hidden) check(); });
+            setInterval(check, 30 * 60 * 1000);
+            check();
           }).catch(function (e) { console.warn("[PWA] ServiceWorker 登録失敗", e); });
         }
       });
+
+      function showUpdateBanner() {
+        if (document.getElementById("update-banner")) return;
+        var b = document.createElement("div");
+        b.id = "update-banner";
+        b.style.cssText = "position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:9999;" +
+          "background:#1f2a3d;color:#fff;font-family:sans-serif;font-size:16px;padding:12px 16px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.4);display:flex;gap:12px;align-items:center";
+        b.innerHTML = "<span>新しいバージョンがあります</span>";
+        var btn = document.createElement("button");
+        btn.textContent = "更新する";
+        btn.style.cssText = "font-size:16px;padding:8px 16px;border:0;border-radius:8px;background:#e6335a;color:#fff";
+        btn.onclick = function () { location.reload(); };
+        b.appendChild(btn);
+        document.body.appendChild(b);
+      }
 
       // ホーム画面へ移動して戻ると、ブラウザが画面(WebGL)の描画を失うことがある(iPhone など)。
       // 失っていない時は何もしない(読み込み直すと、タイトル画面に戻ってしまうため)。
@@ -140,12 +159,12 @@
       }
 
       var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/Unity WebGL.loader.js";
+      var loaderUrl = buildUrl + "/8575d5d3553cac2d9f60654926512d91.loader.js";
       var config = {
         arguments: [],
-        dataUrl: buildUrl + "/Unity WebGL.data",
-        frameworkUrl: buildUrl + "/Unity WebGL.framework.js",
-        codeUrl: buildUrl + "/Unity WebGL.wasm",
+        dataUrl: buildUrl + "/0c52af382c7a0a9528f83fe1e1ee9525.data",
+        frameworkUrl: buildUrl + "/b3d16fbf002f46d427b48eaa5e76824f.framework.js",
+        codeUrl: buildUrl + "/f87540e1ff9e4c54bd30a219100be05b.wasm",
         streamingAssetsUrl: "StreamingAssets",
 
         // If you have a custom web site structure, or want to place multiple Unity build instances on the same page,
@@ -155,7 +174,7 @@
 
         companyName: "2LMCard.com",
         productName: "2LMCard",
-        productVersion: "0.3.12",
+        productVersion: "0.3.13",
         showBanner: unityShowBanner,
         // グラフィック設定(Low / Medium / High)で決めた、画面の細かさの上限。スマホは細かすぎて電池を使うため、下げられるようにしている。
         // 保存が無い(初めて)ときは、タッチ操作の端末は 1.5 まで、それ以外は端末の値のまま。

@@ -2,13 +2,15 @@
 //  ・Build/ の重いファイル(wasm / data / framework / loader)は「キャッシュ優先」で、2回目からすぐ起動する
 //  ・index.html などのページ本体は「ネット優先」(ネットが無い時だけキャッシュ)で、更新がすぐ届く
 //  ・同じ場所(オリジン)以外への通信(中継サーバー・GitHubのミッションJSONなど)には触れない
-// ビルドの製品バージョン(Player Settings の Version)を上げると、キャッシュ名が変わって古いものは自動で消える。
-const cacheName = "2LMCard.com-2LMCard-0.3.12";
+// ビルドごとに、Build/ のファイル名が変わる(Player Settings の「Name Files As Hashes」をオン)ので、この ServiceWorker.js の中身も変わり、
+// ブラウザが新しいビルドを見つけて、入れ替える。古い Build/ のファイルは、入れ替えの時に消す。
+// 製品バージョン(Player Settings の Version)を上げた時も、キャッシュ名が変わって、古いものは全部消える。
+const cacheName = "2LMCard.com-2LMCard-0.3.13";
 const buildFiles = [
-    "Build/Unity WebGL.loader.js",
-    "Build/Unity WebGL.framework.js",
-    "Build/Unity WebGL.wasm",
-    "Build/Unity WebGL.data",
+    "Build/8575d5d3553cac2d9f60654926512d91.loader.js",
+    "Build/b3d16fbf002f46d427b48eaa5e76824f.framework.js",
+    "Build/f87540e1ff9e4c54bd30a219100be05b.wasm",
+    "Build/0c52af382c7a0a9528f83fe1e1ee9525.data",
 ];
 const shellFiles = [
     "./",
@@ -51,6 +53,11 @@ self.addEventListener("activate", function (e) {
     e.waitUntil((async function () {
         const keys = await caches.keys();
         await Promise.all(keys.filter(function (k) { return k !== cacheName; }).map(function (k) { return caches.delete(k); }));
+        // 同じキャッシュの中の、古いビルドのファイル(Build/ の下で、今のビルドの一覧に無いもの)を消す(iPhone は容量が小さいため)
+        const cache = await caches.open(cacheName);
+        const wanted = buildFiles.map(function (f) { return new URL(f, self.registration.scope).href; });
+        const stored = await cache.keys();
+        await Promise.all(stored.filter(function (r) { return r.url.indexOf("/Build/") >= 0 && wanted.indexOf(r.url) < 0; }).map(function (r) { return cache.delete(r); }));
         await self.clients.claim();
     })());
 });
@@ -68,7 +75,7 @@ self.addEventListener("fetch", function (e) {
         e.respondWith((async function () {
             const key = req.mode === "navigate" ? req.url : req;       // ページの移動は、リダイレクトの扱いが特殊なので、URLで取り直す
             try {
-                const res = await clean(await fetch(key));
+                const res = await clean(await fetch(key, { cache: "no-cache" }));      // ブラウザの一時保存(GitHub Pages は10分)を使わず、毎回、最新かどうか確かめる
                 if (res && res.ok) (await caches.open(cacheName)).put(key, res.clone()).catch(function () { });
                 return res;
             } catch (err) {
