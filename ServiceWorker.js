@@ -5,12 +5,12 @@
 // ビルドごとに、Build/ のファイル名が変わる(Player Settings の「Name Files As Hashes」をオン)ので、この ServiceWorker.js の中身も変わり、
 // ブラウザが新しいビルドを見つけて、入れ替える。古い Build/ のファイルは、入れ替えの時に消す。
 // 製品バージョン(Player Settings の Version)を上げた時も、キャッシュ名が変わって、古いものは全部消える。
-const cacheName = "2LMCard.com-2LMCard-0.3.17";
+const cacheName = "2LMCard.com-2LMCard-0.3.18";
 const buildFiles = [
-    "Build/13e94cce22fd3a90067a397b7b5350e9.loader.js",
-    "Build/3f39fc3f94da057f6680dd8926b297d8.framework.js",
-    "Build/1291ac238764a96ef5de3f270a2ea12b.wasm",
-    "Build/e97ab17f75c08d42b3ae0c9df74300fd.data",
+    "Build/482b12465976a991960c5f44ea5c1eb9.loader.js",
+    "Build/12cc6286944e8d6f180eaaaf5f191fd5.framework.js",
+    "Build/013d3a384dbb3646f61221a113dfaea0.wasm",
+    "Build/3ac4fd35f280ac47be088fd463522e1a.data",
 ];
 const shellFiles = [
     "./",
